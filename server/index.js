@@ -11,45 +11,70 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/portfolio';
 
-// Middleware
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+// Allow local dev AND any Vercel deployment URL (set ALLOWED_ORIGIN in production)
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  process.env.ALLOWED_ORIGIN, // e.g. https://your-app.vercel.app
+].filter(Boolean); // remove undefined entries
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Vite dev client origins
+  origin: (origin, callback) => {
+    // Allow server-to-server requests (no origin) or whitelisted origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: Origin "${origin}" not allowed`));
+    }
+  },
   credentials: true,
 }));
+
 app.use(express.json());
 
-// Database connection
+// ─── Database ─────────────────────────────────────────────────────────────────
 console.log('Connecting to MongoDB...');
 mongoose.connect(MONGODB_URI)
   .then(() => {
-    console.log(`Connected to MongoDB successfully: ${MONGODB_URI}`);
+    console.log(`Connected to MongoDB: ${MONGODB_URI.replace(/\/\/.*@/, '//***@')}`);
   })
   .catch((err) => {
-    console.error('Error connecting to MongoDB. Make sure MongoDB service is running:', err.message);
+    console.error('MongoDB connection failed:', err.message);
+    // Do NOT crash — server still handles requests, just DB ops will fail gracefully
   });
 
-// Root route (API health check)
+// ─── Routes ───────────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.json({
     status: 'online',
-    message: "Rohan Shinde's Portfolio Backend REST API",
-    endpoints: {
-      submitContact: 'POST /api/contact'
-    }
+    message: "Rohan Shinde Portfolio API",
+    endpoints: { submitContact: 'POST /api/contact' },
   });
 });
 
-// Routes
 app.use('/api/contact', contactRoutes);
 
-// Global Error Handler
+// ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error('[Server Error]', err);
+  console.error('[Server Error]', err.message);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`API endpoint available at: http://localhost:${PORT}/api`);
+// ─── Start Server ─────────────────────────────────────────────────────────────
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`API: http://localhost:${PORT}/api`);
+});
+
+// Graceful EADDRINUSE handling — avoids crashing the whole process
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Try a different PORT in .env`);
+    process.exit(1);
+  } else {
+    throw err;
+  }
 });
