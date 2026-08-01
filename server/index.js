@@ -19,13 +19,15 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://localhost:5175',
   'https://rohan-shinde-portfolio-one.vercel.app',
-  process.env.ALLOWED_ORIGIN, // e.g. https://your-app.vercel.app
-].filter(Boolean); // remove undefined entries
+];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow server-to-server requests (no origin) or whitelisted origins
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app')
+    ) {
       callback(null, true);
     } else {
       callback(new Error(`CORS: Origin "${origin}" not allowed`));
