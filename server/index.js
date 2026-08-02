@@ -39,14 +39,16 @@ app.use(cors({
 app.use(express.json());
 
 // ─── Database ─────────────────────────────────────────────────────────────────
-console.log('Connecting to MongoDB...');
-mongoose.connect(MONGODB_URI)
+console.log("Connecting to MongoDB...");
+console.log("MONGODB_URI exists:", !!process.env.MONGODB_URI);
+
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log(`Connected to MongoDB: ${MONGODB_URI.replace(/\/\/.*@/, '//***@')}`);
+    console.log("✅ MongoDB Connected Successfully");
   })
   .catch((err) => {
-    console.error('MongoDB connection failed:', err.message);
-    // Do NOT crash — server still handles requests, just DB ops will fail gracefully
+    console.error("❌ MongoDB Connection Failed");
+    console.error(err);
   });
 
 // ─── Routes ───────────────────────────────────────────────────────────────────

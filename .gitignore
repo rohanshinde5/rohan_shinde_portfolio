@@ -1,4 +1,6 @@
+# ==========================
 # Logs
+# ==========================
 logs
 *.log
 npm-debug.log*
@@ -7,22 +9,51 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# ==========================
+# Dependencies
+# ==========================
+node_modules/
+server/node_modules/
+
+# ==========================
+# Environment Variables (Secrets)
+# ==========================
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+
+# ==========================
+# Build Output
+# ==========================
+dist/
+server/dist/
+dist-ssr/
+
+# ==========================
+# Local Files
+# ==========================
 *.local
 
-# Editor directories and files
+# ==========================
+# Editor Settings
+# ==========================
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
+
+# ==========================
+# Operating System Files
+# ==========================
 .DS_Store
+Thumbs.db
+
+# ==========================
+# Visual Studio
+# ==========================
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# Server secrets — never commit these
-server/.env
-server/node_modules
